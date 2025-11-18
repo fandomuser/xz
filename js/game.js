@@ -120,9 +120,86 @@ class Game {
                     }
                 });
             }
+
+            // ДОБАВЬ ЭТУ СТРОЧКУ ДЛЯ МОБИЛЬНЫХ СЕНСОРОВ
+            this.setupTouchEvents();
+            
         } catch (error) {
             console.error('Error setting up event listeners:', error);
         }
+    }
+    
+    // ДОБАВЬ ЭТОТ МЕТОД ВНУТРЬ КЛАССА Game (после setupEventListeners)
+    setupTouchEvents() {
+        // Добавляем тач-события для всех интерактивных элементов
+        const interactiveElements = [
+            this.elements.playButton,
+            this.elements.continueButton,
+            this.elements.settingsButton,
+            this.elements.creditsButton,
+            this.elements.settingsBack,
+            this.elements.creditsBack,
+            this.elements.backButton,
+            this.elements.soundToggle
+        ];
+        
+        interactiveElements.forEach(element => {
+            if (element) {
+                // Добавляем touchstart для мгновенного отклика
+                element.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    element.style.transform = 'scale(0.96)';
+                    element.style.backgroundColor = '#700202';
+                });
+                
+                element.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    element.style.transform = '';
+                    element.style.backgroundColor = '';
+                    element.click(); // Эмулируем клик
+                });
+                
+                element.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    element.style.transform = '';
+                    element.style.backgroundColor = '';
+                });
+            }
+        });
+        
+        // Обработка тач-событий для кнопок выбора
+        if (this.elements.choicesContainer) {
+            this.elements.choicesContainer.addEventListener('touchstart', (e) => {
+                if (e.target.classList.contains('choice-button')) {
+                    e.target.style.transform = 'scale(0.96)';
+                    e.target.style.backgroundColor = '#700202';
+                }
+            }, { passive: true });
+            
+            this.elements.choicesContainer.addEventListener('touchend', (e) => {
+                if (e.target.classList.contains('choice-button')) {
+                    e.target.style.transform = '';
+                    e.target.style.backgroundColor = '';
+                }
+            }, { passive: true });
+        }
+        
+        // Обработка тапа по тексту для пропуска
+        if (this.elements.dialogueText) {
+            this.elements.dialogueText.addEventListener('touchstart', (e) => {
+                if (this.isTyping) {
+                    this.skipTyping();
+                }
+            }, { passive: true });
+        }
+    }
+    
+    // ДОБАВЬ ЭТОТ МЕТОД ТОЖЕ ВНУТРЬ КЛАССА Game
+    isMobileDevice() {
+        return (
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        );
     }
     
     simulateLoading() {
@@ -425,7 +502,7 @@ class Game {
             console.error('Error loading game:', error);
         }
     }
-}
+} // ← ЭТО ЗАКРЫВАЮЩАЯ ФИГУРНАЯ СКОБКА КЛАССА Game
 
 // Запускаем игру когда страница загружена
 document.addEventListener('DOMContentLoaded', () => {
