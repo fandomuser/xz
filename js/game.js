@@ -1,6 +1,8 @@
 // Основной игровой класс
 class Game {
     constructor() {
+        console.log('Game constructor called');
+        
         this.currentScene = "start";
         this.gameData = {
             currentScene: "start",
@@ -15,19 +17,33 @@ class Game {
         this.currentTextInterval = null;
         this.fullText = "";
         
-        this.init();
+        try {
+            this.init();
+        } catch (error) {
+            console.error('Error in Game constructor:', error);
+            this.showErrorScreen();
+        }
     }
     
     init() {
-        this.loadElements();
-        this.setupEventListeners();
-        this.loadGame();
-        this.simulateLoading();
+        console.log('Initializing game...');
+        
+        try {
+            this.loadElements();
+            this.setupEventListeners();
+            this.loadGame();
+            this.simulateLoading();
+        } catch (error) {
+            console.error('Error in init:', error);
+            this.showErrorScreen();
+        }
     }
     
     loadElements() {
-        // Загрузка элементов DOM
-        this.elements = {
+        console.log('Loading DOM elements...');
+        
+        // Проверяем существование всех элементов
+        const elements = {
             loadingScreen: document.getElementById('loading-screen'),
             loadingBar: document.getElementById('loading-bar'),
             mainMenu: document.getElementById('main-menu'),
@@ -48,205 +64,323 @@ class Game {
             settingsBack: document.getElementById('settings-back'),
             creditsBack: document.getElementById('credits-back'),
             backButton: document.getElementById('back-button'),
-            soundToggle: document.getElementById('sound-toggle'),
-            
-            musicVolume: document.getElementById('music-volume'),
-            sfxVolume: document.getElementById('sfx-volume')
+            soundToggle: document.getElementById('sound-toggle')
         };
+        
+        // Проверяем, что все основные элементы существуют
+        for (const [key, element] of Object.entries(elements)) {
+            if (!element) {
+                console.warn(`Element ${key} not found`);
+            }
+        }
+        
+        this.elements = elements;
+        
+        // Проверяем критически важные элементы
+        if (!this.elements.loadingScreen || !this.elements.loadingBar) {
+            throw new Error('Critical loading elements not found');
+        }
     }
     
     setupEventListeners() {
-        // Кнопки меню
-        this.elements.playButton.addEventListener('click', () => this.startNewGame());
-        this.elements.continueButton.addEventListener('click', () => this.continueGame());
-        this.elements.settingsButton.addEventListener('click', () => this.showSettings());
-        this.elements.creditsButton.addEventListener('click', () => this.showCredits());
-        this.elements.settingsBack.addEventListener('click', () => this.hideSettings());
-        this.elements.creditsBack.addEventListener('click', () => this.hideCredits());
-        this.elements.backButton.addEventListener('click', () => this.backToMenu());
-        this.elements.soundToggle.addEventListener('click', () => this.toggleSound());
+        console.log('Setting up event listeners...');
         
-        // Настройки громкости
-        this.elements.musicVolume.addEventListener('input', (e) => {
-            audioManager.setMusicVolume(e.target.value / 100);
-        });
-        
-        this.elements.sfxVolume.addEventListener('input', (e) => {
-            audioManager.setSfxVolume(e.target.value / 100);
-        });
-        
-        // Обработка клика по тексту для ускорения/пропуска
-        this.elements.dialogueText.addEventListener('click', () => {
-            if (this.isTyping) {
-                this.skipTyping();
-            } else {
-                // Если текст уже полностью показан, можно добавить функциональность
-                // например, переход к следующей части диалога, если есть
+        try {
+            // Кнопки меню
+            if (this.elements.playButton) {
+                this.elements.playButton.addEventListener('click', () => this.startNewGame());
             }
-        });
+            if (this.elements.continueButton) {
+                this.elements.continueButton.addEventListener('click', () => this.continueGame());
+            }
+            if (this.elements.settingsButton) {
+                this.elements.settingsButton.addEventListener('click', () => this.showSettings());
+            }
+            if (this.elements.creditsButton) {
+                this.elements.creditsButton.addEventListener('click', () => this.showCredits());
+            }
+            if (this.elements.settingsBack) {
+                this.elements.settingsBack.addEventListener('click', () => this.hideSettings());
+            }
+            if (this.elements.creditsBack) {
+                this.elements.creditsBack.addEventListener('click', () => this.hideCredits());
+            }
+            if (this.elements.backButton) {
+                this.elements.backButton.addEventListener('click', () => this.backToMenu());
+            }
+            if (this.elements.soundToggle) {
+                this.elements.soundToggle.addEventListener('click', () => this.toggleSound());
+            }
+            
+            // Обработка клика по тексту для ускорения/пропуска
+            if (this.elements.dialogueText) {
+                this.elements.dialogueText.addEventListener('click', () => {
+                    if (this.isTyping) {
+                        this.skipTyping();
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error setting up event listeners:', error);
+        }
     }
     
     simulateLoading() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                setTimeout(() => {
-                    this.elements.loadingScreen.style.display = 'none';
-                    this.elements.mainMenu.style.display = 'flex';
-                    this.isLoading = false;
-                }, 500);
+        console.log('Starting loading simulation...');
+        
+        try {
+            let progress = 0;
+            const maxProgress = 100;
+            const intervalTime = 30;
+            
+            const interval = setInterval(() => {
+                progress += 1;
+                
+                if (this.elements.loadingBar) {
+                    this.elements.loadingBar.style.width = `${progress}%`;
+                }
+                
+                if (progress >= maxProgress) {
+                    clearInterval(interval);
+                    console.log('Loading complete');
+                    
+                    setTimeout(() => {
+                        if (this.elements.loadingScreen && this.elements.mainMenu) {
+                            this.elements.loadingScreen.style.display = 'none';
+                            this.elements.mainMenu.style.display = 'flex';
+                            this.isLoading = false;
+                            console.log('Game ready');
+                        }
+                    }, 500);
+                }
+            }, intervalTime);
+        } catch (error) {
+            console.error('Error in loading simulation:', error);
+            // Если загрузка сломалась, показываем меню сразу
+            if (this.elements.loadingScreen && this.elements.mainMenu) {
+                this.elements.loadingScreen.style.display = 'none';
+                this.elements.mainMenu.style.display = 'flex';
             }
-            this.elements.loadingBar.style.width = `${progress}%`;
-        }, 200);
+        }
     }
     
-    startNewGame() {
-        this.gameData = {
-            currentScene: "start",
-            inventory: [],
-            visitedScenes: [],
-            choices: {}
-        };
+    showErrorScreen() {
+        console.error('Showing error screen');
+        // Простой fallback - показываем меню
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainMenu = document.getElementById('main-menu');
         
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.gameScreen.style.display = 'flex';
-        audioManager.playMusic("ambient");
-        this.showScene("start");
+        if (loadingScreen && mainMenu) {
+            loadingScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        }
+    }
+    
+    // Остальные методы остаются такими же, как в предыдущей версии
+    startNewGame() {
+        console.log('Starting new game');
+        try {
+            this.gameData = {
+                currentScene: "start",
+                inventory: [],
+                visitedScenes: [],
+                choices: {}
+            };
+            
+            if (this.elements.mainMenu && this.elements.gameScreen) {
+                this.elements.mainMenu.style.display = 'none';
+                this.elements.gameScreen.style.display = 'flex';
+            }
+            
+            if (window.audioManager) {
+                audioManager.playMusic("ambient");
+            }
+            
+            this.showScene("start");
+        } catch (error) {
+            console.error('Error starting new game:', error);
+        }
     }
     
     continueGame() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.gameScreen.style.display = 'flex';
-        this.showScene(this.gameData.currentScene);
+        console.log('Continuing game');
+        try {
+            if (this.elements.mainMenu && this.elements.gameScreen) {
+                this.elements.mainMenu.style.display = 'none';
+                this.elements.gameScreen.style.display = 'flex';
+            }
+            this.showScene(this.gameData.currentScene);
+        } catch (error) {
+            console.error('Error continuing game:', error);
+        }
     }
     
     showSettings() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.settingsScreen.style.display = 'flex';
+        if (this.elements.mainMenu && this.elements.settingsScreen) {
+            this.elements.mainMenu.style.display = 'none';
+            this.elements.settingsScreen.style.display = 'flex';
+        }
     }
     
     hideSettings() {
-        this.elements.settingsScreen.style.display = 'none';
-        this.elements.mainMenu.style.display = 'flex';
+        if (this.elements.settingsScreen && this.elements.mainMenu) {
+            this.elements.settingsScreen.style.display = 'none';
+            this.elements.mainMenu.style.display = 'flex';
+        }
     }
     
     showCredits() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.creditsScreen.style.display = 'flex';
+        if (this.elements.mainMenu && this.elements.creditsScreen) {
+            this.elements.mainMenu.style.display = 'none';
+            this.elements.creditsScreen.style.display = 'flex';
+        }
     }
     
     hideCredits() {
-        this.elements.creditsScreen.style.display = 'none';
-        this.elements.mainMenu.style.display = 'flex';
+        if (this.elements.creditsScreen && this.elements.mainMenu) {
+            this.elements.creditsScreen.style.display = 'none';
+            this.elements.mainMenu.style.display = 'flex';
+        }
     }
     
     backToMenu() {
         if (confirm("Вы уверены, что хотите вернуться в меню? Весь прогресс будет сохранен.")) {
-            this.elements.gameScreen.style.display = 'none';
-            this.elements.mainMenu.style.display = 'flex';
-            audioManager.stopMusic();
+            if (this.elements.gameScreen && this.elements.mainMenu) {
+                this.elements.gameScreen.style.display = 'none';
+                this.elements.mainMenu.style.display = 'flex';
+            }
+            if (window.audioManager) {
+                audioManager.stopMusic();
+            }
             this.saveGame();
         }
     }
     
     toggleSound() {
-        const isMuted = audioManager.toggleMute();
-        this.elements.soundToggle.textContent = isMuted ? "🔇 БЕЗ ЗВУКА" : "🔊 ЗВУК";
+        if (window.audioManager) {
+            const isMuted = audioManager.toggleMute();
+            if (this.elements.soundToggle) {
+                this.elements.soundToggle.textContent = isMuted ? "🔇 БЕЗ ЗВУКА" : "🔊 ЗВУК";
+            }
+        }
     }
     
     showScene(sceneId) {
-        // Останавливаем текущую анимацию текста, если она есть
-        this.skipTyping();
+        console.log('Showing scene:', sceneId);
         
-        const scene = story[sceneId];
-        if (!scene) {
-            console.error("Сцена не найдена:", sceneId);
-            this.showScene("start");
-            return;
+        try {
+            // Останавливаем текущую анимацию текста, если она есть
+            this.skipTyping();
+            
+            const scene = story[sceneId];
+            if (!scene) {
+                console.error("Сцена не найдена:", sceneId);
+                this.showScene("start");
+                return;
+            }
+            
+            // Обновляем фон
+            if (this.elements.background) {
+                this.elements.background.style.backgroundImage = `url('${scene.background}')`;
+            }
+            
+            // Обновляем персонажа
+            if (this.elements.character) {
+                this.elements.character.style.backgroundImage = `url('${scene.character}')`;
+            }
+            
+            // Обновляем музыку
+            if (scene.music && window.audioManager) {
+                audioManager.playMusic(scene.music);
+            }
+            
+            // Воспроизводим звук
+            if (scene.sound && window.audioManager) {
+                audioManager.playSound(scene.sound);
+            }
+            
+            // Показываем имя говорящего
+            if (this.elements.speakerName) {
+                this.elements.speakerName.textContent = scene.speaker;
+            }
+            
+            // Начинаем анимацию текста
+            if (this.elements.dialogueText) {
+                this.typeText(scene.text, this.elements.dialogueText);
+            }
+            
+            // Очищаем и добавляем кнопки выбора
+            if (this.elements.choicesContainer) {
+                this.elements.choicesContainer.innerHTML = '';
+                scene.choices.forEach(choice => {
+                    const button = document.createElement('div');
+                    button.className = 'choice-button';
+                    button.textContent = choice.text;
+                    button.addEventListener('click', () => {
+                        // Если текст еще печатается, сначала показываем его полностью
+                        if (this.isTyping) {
+                            this.skipTyping();
+                            // Даем небольшую задержку перед переходом для лучшего UX
+                            setTimeout(() => {
+                                if (window.audioManager) {
+                                    audioManager.playSound("click");
+                                }
+                                this.makeChoice(choice.next);
+                            }, 100);
+                        } else {
+                            if (window.audioManager) {
+                                audioManager.playSound("click");
+                            }
+                            this.makeChoice(choice.next);
+                        }
+                    });
+                    this.elements.choicesContainer.appendChild(button);
+                });
+            }
+            
+            // Сохраняем текущую сцену
+            this.gameData.currentScene = sceneId;
+            if (!this.gameData.visitedScenes.includes(sceneId)) {
+                this.gameData.visitedScenes.push(sceneId);
+            }
+            
+            this.saveGame();
+        } catch (error) {
+            console.error('Error showing scene:', error);
         }
-        
-        // Обновляем фон
-        this.elements.background.style.backgroundImage = `url('${scene.background}')`;
-        
-        // Обновляем персонажа
-        this.elements.character.style.backgroundImage = `url('${scene.character}')`;
-        
-        // Обновляем музыку
-        if (scene.music) {
-            audioManager.playMusic(scene.music);
-        }
-        
-        // Воспроизводим звук
-        if (scene.sound) {
-            audioManager.playSound(scene.sound);
-        }
-        
-        // Показываем имя говорящего
-        this.elements.speakerName.textContent = scene.speaker;
-        
-        // Начинаем анимацию текста
-        this.typeText(scene.text, this.elements.dialogueText);
-        
-        // Очищаем и добавляем кнопки выбора
-        this.elements.choicesContainer.innerHTML = '';
-        scene.choices.forEach(choice => {
-            const button = document.createElement('div');
-            button.className = 'choice-button';
-            button.textContent = choice.text;
-            button.addEventListener('click', () => {
-                // Если текст еще печатается, сначала показываем его полностью
-                if (this.isTyping) {
-                    this.skipTyping();
-                    // Даем небольшую задержку перед переходом для лучшего UX
-                    setTimeout(() => {
-                        audioManager.playSound("click");
-                        this.makeChoice(choice.next);
-                    }, 100);
-                } else {
-                    audioManager.playSound("click");
-                    this.makeChoice(choice.next);
-                }
-            });
-            this.elements.choicesContainer.appendChild(button);
-        });
-        
-        // Сохраняем текущую сцену
-        this.gameData.currentScene = sceneId;
-        if (!this.gameData.visitedScenes.includes(sceneId)) {
-            this.gameData.visitedScenes.push(sceneId);
-        }
-        
-        this.saveGame();
     }
     
     typeText(text, element) {
-        // Останавливаем предыдущую анимацию, если она есть
-        if (this.currentTextInterval) {
-            clearInterval(this.currentTextInterval);
-            this.currentTextInterval = null;
-        }
-        
-        // Сбрасываем состояние
-        this.isTyping = true;
-        this.fullText = text;
-        element.innerHTML = '';
-        
-        let i = 0;
-        this.currentTextInterval = setInterval(() => {
-            if (i < text.length) {
-                // Добавляем по одному символу
-                element.innerHTML += text.charAt(i);
-                i++;
-            } else {
-                // Текст полностью напечатан
+        try {
+            // Останавливаем предыдущую анимацию, если она есть
+            if (this.currentTextInterval) {
                 clearInterval(this.currentTextInterval);
                 this.currentTextInterval = null;
-                this.isTyping = false;
             }
-        }, this.textSpeed);
+            
+            // Сбрасываем состояние
+            this.isTyping = true;
+            this.fullText = text;
+            element.innerHTML = '';
+            
+            let i = 0;
+            this.currentTextInterval = setInterval(() => {
+                if (i < text.length) {
+                    // Добавляем по одному символу
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    // Текст полностью напечатан
+                    clearInterval(this.currentTextInterval);
+                    this.currentTextInterval = null;
+                    this.isTyping = false;
+                }
+            }, this.textSpeed);
+        } catch (error) {
+            console.error('Error typing text:', error);
+            element.innerHTML = text; // Показываем текст сразу в случае ошибки
+            this.isTyping = false;
+        }
     }
     
     skipTyping() {
@@ -255,7 +389,7 @@ class Game {
             this.currentTextInterval = null;
         }
         
-        if (this.isTyping) {
+        if (this.isTyping && this.elements.dialogueText) {
             // Показываем весь текст сразу
             this.elements.dialogueText.innerHTML = this.fullText;
             this.isTyping = false;
@@ -267,190 +401,50 @@ class Game {
     }
     
     saveGame() {
-        localStorage.setItem('iAmNotSubhanSave', JSON.stringify(this.gameData));
+        try {
+            localStorage.setItem('iAmNotSubhanSave', JSON.stringify(this.gameData));
+        } catch (error) {
+            console.error('Error saving game:', error);
+        }
     }
     
     loadGame() {
-        const savedGame = localStorage.getItem('iAmNotSubhanSave');
-        if (savedGame) {
-            this.gameData = JSON.parse(savedGame);
-            this.elements.continueButton.style.display = 'block';
-        } else {
-            this.elements.continueButton.style.display = 'none';
-        }
-    }
-}
-
-// Запускаем игру когда страница загружена
-document.addEventListener('DOMContentLoaded', () => {
-    window.game = new Game();
-});        this.elements.soundToggle.addEventListener('click', () => this.toggleSound());
-        
-        // Настройки громкости
-        this.elements.musicVolume.addEventListener('input', (e) => {
-            audioManager.setMusicVolume(e.target.value / 100);
-        });
-        
-        this.elements.sfxVolume.addEventListener('input', (e) => {
-            audioManager.setSfxVolume(e.target.value / 100);
-        });
-    }
-    
-    simulateLoading() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                setTimeout(() => {
-                    this.elements.loadingScreen.style.display = 'none';
-                    this.elements.mainMenu.style.display = 'flex';
-                    this.isLoading = false;
-                }, 500);
-            }
-            this.elements.loadingBar.style.width = `${progress}%`;
-        }, 200);
-    }
-    
-    startNewGame() {
-        this.gameData = {
-            currentScene: "start",
-            inventory: [],
-            visitedScenes: [],
-            choices: {}
-        };
-        
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.gameScreen.style.display = 'flex';
-        audioManager.playMusic("ambient");
-        this.showScene("start");
-    }
-    
-    continueGame() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.gameScreen.style.display = 'flex';
-        this.showScene(this.gameData.currentScene);
-    }
-    
-    showSettings() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.settingsScreen.style.display = 'flex';
-    }
-    
-    hideSettings() {
-        this.elements.settingsScreen.style.display = 'none';
-        this.elements.mainMenu.style.display = 'flex';
-    }
-    
-    showCredits() {
-        this.elements.mainMenu.style.display = 'none';
-        this.elements.creditsScreen.style.display = 'flex';
-    }
-    
-    hideCredits() {
-        this.elements.creditsScreen.style.display = 'none';
-        this.elements.mainMenu.style.display = 'flex';
-    }
-    
-    backToMenu() {
-        if (confirm("Вы уверены, что хотите вернуться в меню? Весь прогресс будет сохранен.")) {
-            this.elements.gameScreen.style.display = 'none';
-            this.elements.mainMenu.style.display = 'flex';
-            audioManager.stopMusic();
-            this.saveGame();
-        }
-    }
-    
-    toggleSound() {
-        const isMuted = audioManager.toggleMute();
-        this.elements.soundToggle.textContent = isMuted ? "🔇 БЕЗ ЗВУКА" : "🔊 ЗВУК";
-    }
-    
-    showScene(sceneId) {
-        const scene = story[sceneId];
-        if (!scene) {
-            console.error("Сцена не найдена:", sceneId);
-            this.showScene("start");
-            return;
-        }
-        
-        // Обновляем фон
-        this.elements.background.style.backgroundImage = `url('${scene.background}')`;
-        
-        // Обновляем персонажа
-        this.elements.character.style.backgroundImage = `url('${scene.character}')`;
-        
-        // Обновляем музыку
-        if (scene.music) {
-            audioManager.playMusic(scene.music);
-        }
-        
-        // Воспроизводим звук
-        if (scene.sound) {
-            audioManager.playSound(scene.sound);
-        }
-        
-        // Показываем имя говорящего и текст
-        this.elements.speakerName.textContent = scene.speaker;
-        this.typeText(scene.text, this.elements.dialogueText);
-        
-        // Очищаем и добавляем кнопки выбора
-        this.elements.choicesContainer.innerHTML = '';
-        scene.choices.forEach(choice => {
-            const button = document.createElement('div');
-            button.className = 'choice-button';
-            button.textContent = choice.text;
-            button.addEventListener('click', () => {
-                audioManager.playSound("click");
-                this.makeChoice(choice.next);
-            });
-            this.elements.choicesContainer.appendChild(button);
-        });
-        
-        // Сохраняем текущую сцену
-        this.gameData.currentScene = sceneId;
-        if (!this.gameData.visitedScenes.includes(sceneId)) {
-            this.gameData.visitedScenes.push(sceneId);
-        }
-        
-        this.saveGame();
-    }
-    
-    typeText(text, element) {
-        let i = 0;
-        element.innerHTML = '';
-        const timer = setInterval(() => {
-            if (i < text.length) {
-                element.innerHTML += text.charAt(i);
-                i++;
+        try {
+            const savedGame = localStorage.getItem('iAmNotSubhanSave');
+            if (savedGame) {
+                this.gameData = JSON.parse(savedGame);
+                if (this.elements.continueButton) {
+                    this.elements.continueButton.style.display = 'block';
+                }
             } else {
-                clearInterval(timer);
+                if (this.elements.continueButton) {
+                    this.elements.continueButton.style.display = 'none';
+                }
             }
-        }, this.textSpeed);
-    }
-    
-    makeChoice(nextScene) {
-        this.showScene(nextScene);
-    }
-    
-    saveGame() {
-        localStorage.setItem('iAmNotSubhanSave', JSON.stringify(this.gameData));
-    }
-    
-    loadGame() {
-        const savedGame = localStorage.getItem('iAmNotSubhanSave');
-        if (savedGame) {
-            this.gameData = JSON.parse(savedGame);
-            this.elements.continueButton.style.display = 'block';
-        } else {
-            this.elements.continueButton.style.display = 'none';
+        } catch (error) {
+            console.error('Error loading game:', error);
         }
     }
 }
 
 // Запускаем игру когда страница загружена
 document.addEventListener('DOMContentLoaded', () => {
-    window.game = new Game();
+    console.log('DOM fully loaded, starting game...');
+    try {
+        window.game = new Game();
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+        // Аварийный показ меню
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainMenu = document.getElementById('main-menu');
+        if (loadingScreen && mainMenu) {
+            loadingScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        }
+    }
+});
 
+// Добавляем обработчик ошибок
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
 });
