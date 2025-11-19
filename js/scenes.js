@@ -1,4 +1,4 @@
-// Данные сцен игры
+// Данные сцен игры - оптимизированная версия
 const story = {
     start: {
         background: 'images/backgrounds/hospital-room.jpg',
@@ -670,26 +670,38 @@ const story = {
     }
 };
 
-// Автоматически создаем заглушки для всех недостающих сцен
-const missingScenes = [
-    'ask_deal', 'ask_want', 'what_did_i_do', 'reject_past', 'break_memory', 
-    'find_redemption', 'continue_experiment', 'stop_experiment', 'resurrect_wife', 
-    'listen_to_wife', 'wife_illness', 'distrust_ghost', 'other_prisoners', 
-    'amulet_location', 'solo_mission', 'group_attack', 'distraction_plan', 
-    'negotiate_subhan', 'self_sacrifice', 'sacrifice_other', 'reject_ritual', 
-    'find_another_way', 'break_reality', 'find_real_subhan', 'accept_role', 
-    'merge_with_souls', 'early_patients', 'reunite_family', 'leverage_daughter', 
-    'leave_them', 'hide_deeper', 'ambush_attacker', 'examine_room', 'find_exit',
-    'watch_monitors', 'exit_monitor_room', 'break_monitors', 'examine_symbols',
-    'close_book', 'continue_reading', 'run_to_house', 'deeper_forest', 'surrender_final',
-    'surrender', 'study_symbols', 'follow_tracks', 'remember_ritual_details',
-    'wait_longer', 'wait_under_stairs', 'attack_first', 'wait_and_see',
-    'keep_hiding'
+// Автоматическое создание заглушек для отсутствующих сцен
+const requiredScenes = [
+    'approach_window', 'examine_walls', 'examine_stain', 'remember_more', 'focus_subhan',
+    'escape_door', 'approach_door', 'hide_observe', 'return_center', 'prepare_defense',
+    'hide_bed', 'decipher_symbols', 'take_handle', 'examine_floor', 'understand_ritual',
+    'listen_door', 'keep_silent', 'attack_figure', 'surrender_early', 'go_downstairs',
+    'hide_under_stairs', 'run_to_light', 'take_side_passage', 'approach_altar', 'open_book',
+    'ask_who', 'deny_subhan', 'run_away', 'subhan_past', 'subhan_experiment', 'experiment_disaster',
+    'ask_about_wife', 'meet_other_souls', 'escape_plan', 'unite_souls', 'ritual_choice',
+    'hospital_truth', 'first_patient', 'find_daughter', 'redemption_ending', 'replacement_ending',
+    'destruction_ending', 'merge_ending'
 ];
 
-// Создаем автоматические заглушки
-missingScenes.forEach(sceneName => {
+// Создаем заглушки только если сцены не существуют
+requiredScenes.forEach(sceneName => {
     if (!story[sceneName]) {
         story[sceneName] = story.development_note;
     }
 });
+
+// Валидация сцен при разработке
+if (process.env.NODE_ENV === 'development') {
+    Object.keys(story).forEach(sceneId => {
+        const scene = story[sceneId];
+        if (!scene.choices || !Array.isArray(scene.choices)) {
+            console.warn(`Сцена ${sceneId} не имеет валидных выборов`);
+        }
+        
+        scene.choices.forEach(choice => {
+            if (!story[choice.next]) {
+                console.warn(`Сцена ${sceneId} ссылается на несуществующую сцену: ${choice.next}`);
+            }
+        });
+    });
+}
