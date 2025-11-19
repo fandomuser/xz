@@ -64,7 +64,10 @@ class Game {
             settingsBack: document.getElementById('settings-back'),
             creditsBack: document.getElementById('credits-back'),
             backButton: document.getElementById('back-button'),
-            soundToggle: document.getElementById('sound-toggle')
+            soundToggle: document.getElementById('sound-toggle'),
+            
+            musicVolume: document.getElementById('music-volume'),
+            sfxVolume: document.getElementById('sfx-volume')
         };
         
         // Проверяем, что все основные элементы существуют
@@ -112,6 +115,23 @@ class Game {
                 this.elements.soundToggle.addEventListener('click', () => this.toggleSound());
             }
             
+            // Настройки громкости
+            if (this.elements.musicVolume) {
+                this.elements.musicVolume.addEventListener('input', (e) => {
+                    if (window.audioManager) {
+                        audioManager.setMusicVolume(e.target.value / 100);
+                    }
+                });
+            }
+            
+            if (this.elements.sfxVolume) {
+                this.elements.sfxVolume.addEventListener('input', (e) => {
+                    if (window.audioManager) {
+                        audioManager.setSfxVolume(e.target.value / 100);
+                    }
+                });
+            }
+            
             // Обработка клика по тексту для ускорения/пропуска
             if (this.elements.dialogueText) {
                 this.elements.dialogueText.addEventListener('click', () => {
@@ -121,7 +141,7 @@ class Game {
                 });
             }
 
-            // ДОБАВЬ ЭТУ СТРОЧКУ ДЛЯ МОБИЛЬНЫХ СЕНСОРОВ
+            // Добавляем тач-события для мобильных устройств
             this.setupTouchEvents();
             
         } catch (error) {
@@ -129,7 +149,6 @@ class Game {
         }
     }
     
-    // ДОБАВЬ ЭТОТ МЕТОД ВНУТРЬ КЛАССА Game (после setupEventListeners)
     setupTouchEvents() {
         // Добавляем тач-события для всех интерактивных элементов
         const interactiveElements = [
@@ -194,7 +213,7 @@ class Game {
         }
     }
     
-    // ДОБАВЬ ЭТОТ МЕТОД ТОЖЕ ВНУТРЬ КЛАССА Game
+    // Добавляем определение типа устройства
     isMobileDevice() {
         return (
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -253,7 +272,6 @@ class Game {
         }
     }
     
-    // Остальные методы остаются такими же, как в предыдущей версии
     startNewGame() {
         console.log('Starting new game');
         try {
@@ -349,12 +367,15 @@ class Game {
             // Останавливаем текущую анимацию текста, если она есть
             this.skipTyping();
             
-            const scene = story[sceneId];
-            if (!scene) {
+            // Защита от несуществующих сцен
+            if (!story[sceneId]) {
                 console.error("Сцена не найдена:", sceneId);
-                this.showScene("start");
+                // Вместо сброса к началу, показываем заглушку
+                this.showScene("development_note");
                 return;
             }
+            
+            const scene = story[sceneId];
             
             // Обновляем фон
             if (this.elements.background) {
@@ -364,6 +385,11 @@ class Game {
             // Обновляем персонажа
             if (this.elements.character) {
                 this.elements.character.style.backgroundImage = `url('${scene.character}')`;
+            }
+            
+            // Для мобильных устройств делаем текст немного больше
+            if (this.isMobileDevice() && this.elements.dialogueText) {
+                this.elements.dialogueText.style.fontSize = '1rem';
             }
             
             // Обновляем музыку
@@ -424,6 +450,8 @@ class Game {
             this.saveGame();
         } catch (error) {
             console.error('Error showing scene:', error);
+            // Аварийный переход к заглушке
+            this.showScene("development_note");
         }
     }
     
@@ -502,7 +530,7 @@ class Game {
             console.error('Error loading game:', error);
         }
     }
-} // ← ЭТО ЗАКРЫВАЮЩАЯ ФИГУРНАЯ СКОБКА КЛАССА Game
+}
 
 // Запускаем игру когда страница загружена
 document.addEventListener('DOMContentLoaded', () => {
