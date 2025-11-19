@@ -55,6 +55,32 @@ const story = {
         ]
     },
 
+    approach_window: {
+        background: 'images/backgrounds/hospital-room.jpg',
+        character: 'images/characters/player.png',
+        speaker: "Ты",
+        text: "Ты подходишь к окну и пытаешься разглядеть что-то через щели между досками. Снаружи только густой туман и силуэты каких-то деревьев. Вдруг ты слышишь шаги за дверью... Они приближаются.",
+        music: "tension",
+        choices: [
+            { text: "Быстро вернуться к центру комнаты", next: "return_center" },
+            { text: "Приготовиться к обороне", next: "prepare_defense" },
+            { text: "Спрятаться за кроватью", next: "hide_bed" }
+        ]
+    },
+
+    examine_walls: {
+        background: 'images/backgrounds/hospital-room.jpg',
+        character: 'images/characters/player.png',
+        speaker: "Ты",
+        text: "Ты внимательно изучаешь стены. Кроме царапин, ты замечаешь странные символы, нарисованные чем-то тёмным. Они напоминают тебе что-то... что-то из твоих кошмаров. Внезапно ты слышишь скрип двери.",
+        music: "ambient",
+        choices: [
+            { text: "Быстро отвернуться от стены", next: "look_around" },
+            { text: "Попытаться расшифровать символы", next: "decipher_symbols" },
+            { text: "Прислушаться к звуку за дверью", next: "listen_door" }
+        ]
+    },
+
     development_note: {
         background: 'images/backgrounds/hospital-room.jpg',
         character: 'images/characters/player.png',
@@ -66,21 +92,14 @@ const story = {
     }
 };
 
-// Автоматически создаем заглушки для всех недостающих сцен
-const missingScenes = [
-    'approach_window', 'examine_walls', 'examine_stain', 'remember_more', 'focus_subhan',
-    'escape_door', 'approach_door', 'hide_observe', 'return_center', 'prepare_defense',
-    'hide_bed', 'decipher_symbols', 'take_handle', 'examine_floor', 'understand_ritual',
-    'listen_door', 'keep_silent', 'attack_figure', 'surrender_early', 'go_downstairs',
-    'hide_under_stairs', 'run_to_light', 'take_side_passage', 'approach_altar', 'open_book',
-    'ask_who', 'deny_subhan', 'run_away', 'subhan_past', 'subhan_experiment', 'experiment_disaster',
-    'ask_about_wife', 'meet_other_souls', 'escape_plan', 'unite_souls', 'ritual_choice',
-    'hospital_truth', 'first_patient', 'find_daughter', 'redemption_ending', 'replacement_ending',
-    'destruction_ending', 'merge_ending'
+// Создаем заглушки для отсутствующих сцен
+const sceneNames = [
+    'examine_stain', 'remember_more', 'focus_subhan', 'escape_door', 'approach_door', 
+    'hide_observe', 'return_center', 'prepare_defense', 'hide_bed', 'decipher_symbols', 
+    'listen_door'
 ];
 
-// Создаем автоматические заглушки
-missingScenes.forEach(sceneName => {
+sceneNames.forEach(sceneName => {
     if (!story[sceneName]) {
         story[sceneName] = story.development_note;
     }
