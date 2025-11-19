@@ -1,40 +1,52 @@
-// Аудио менеджер
+// Аудио менеджер - исправленная версия
 class AudioManager {
     constructor() {
-        this.sounds = {};
-        this.music = {};
+        this.sounds = new Map();
+        this.music = new Map();
         this.isMuted = false;
         this.musicVolume = 0.5;
         this.sfxVolume = 0.7;
         this.audioContext = null;
         this.isAudioUnlocked = false;
+        this.globalGainNode = null;
         
-        this.loadSounds();
-        this.setupAudioUnlock();
+        this.init();
+    }
+    
+    async init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.globalGainNode = this.audioContext.createGain();
+            this.globalGainNode.connect(this.audioContext.destination);
+            
+            await this.loadSounds();
+            this.setupAudioUnlock();
+        } catch (error) {
+            console.warn("Web Audio API не поддерживается:", error);
+            this.setupHTML5Audio();
+        }
     }
     
     setupAudioUnlock() {
-        // Разблокируем аудио при первом взаимодействии пользователя
         const unlockAudio = () => {
-            if (this.isAudioUnlocked) return;
+            if (this.isAudioUnlocked || !this.audioContext) return;
             
             try {
-                if (this.audioContext && this.audioContext.state === 'suspended') {
+                if (this.audioContext.state === 'suspended') {
                     this.audioContext.resume();
                 }
                 
-                // Пробуем воспроизвести тихий звук чтобы разблокировать аудио
-                const silentSource = this.audioContext.createBufferSource();
+                // Создаем и воспроизводим короткий беззвучный буфер
                 const buffer = this.audioContext.createBuffer(1, 1, 22050);
-                silentSource.buffer = buffer;
-                silentSource.connect(this.audioContext.destination);
-                silentSource.start();
-                silentSource.stop(this.audioContext.currentTime + 0.001);
+                const source = this.audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(this.audioContext.destination);
+                source.start();
+                source.stop(this.audioContext.currentTime + 0.001);
                 
                 this.isAudioUnlocked = true;
-                console.log("Аудио разблокировано!");
+                console.log("Аудио разблокировано");
                 
-                // Убираем обработчики после успешной разблокировки
                 document.removeEventListener('click', unlockAudio);
                 document.removeEventListener('keydown', unlockAudio);
                 document.removeEventListener('touchstart', unlockAudio);
@@ -43,108 +55,99 @@ class AudioManager {
             }
         };
         
-        // Добавляем обработчики для разблокировки
         document.addEventListener('click', unlockAudio, { once: true });
         document.addEventListener('keydown', unlockAudio, { once: true });
         document.addEventListener('touchstart', unlockAudio, { once: true });
     }
     
-    loadSounds() {
-        try {
-            // Создаем AudioContext если поддерживается
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (error) {
-            console.warn("Web Audio API не поддерживается, используем HTML5 Audio:", error);
-        }
-        
-        // Базовые звуки с путями
+    setupHTML5Audio() {
+        console.log("Используется HTML5 Audio fallback");
+    }
+    
+    async loadSounds() {
         const soundConfigs = {
-            click: { path: 'audio/sfx/click.mp3', fallbackFreq: 800 },
-            footsteps: { path: 'audio/sfx/footsteps.wav', fallbackFreq: 400 },
-            door: { path: 'audio/sfx/door-creak.wav', fallbackFreq: 300 },
-            whisper: { path: 'audio/sfx/whisper.wav', fallbackFreq: 600 },
-            heartbeat: { path: 'audio/sfx/heartbeat.wav', fallbackFreq: 100 },
-            ghostWhisper: { path: 'audio/sfx/ghost-whisper.wav', fallbackFreq: 500 },
-            realityBreak: { path: 'audio/sfx/reality-break.wav', fallbackFreq: 200 },
-            memoryFlash: { path: 'audio/sfx/memory-flash.wav', fallbackFreq: 1200 },
-            ritualChant: { path: 'audio/sfx/ritual-chant.wav', fallbackFreq: 350 }
+            click: 'audio/sfx/click.mp3',
+            footsteps: 'audio/sfx/footsteps.wav',
+            door: 'audio/sfx/door-creak.wav',
+            whisper: 'audio/sfx/whisper.wav',
+            heartbeat: 'audio/sfx/heartbeat.wav',
+            ghostWhisper: 'audio/sfx/ghost-whisper.wav',
+            realityBreak: 'audio/sfx/reality-break.wav',
+            memoryFlash: 'audio/sfx/memory-flash.wav',
+            ritualChant: 'audio/sfx/ritual-chant.wav'
         };
         
         const musicConfigs = {
             main: 'audio/music/main-theme.mp3',
-            ambient: 'audio/music/creepy-ambient.mp3', 
+            ambient: 'audio/music/creepy-ambient.mp3',
             tension: 'audio/music/tension.mp3',
             memoryTheme: 'audio/music/memory-theme.mp3',
             ritualMusic: 'audio/music/ritual-music.mp3',
             truthTheme: 'audio/music/truth-theme.mp3'
         };
         
-        // Загружаем звуки эффектов
-        Object.entries(soundConfigs).forEach(([name, config]) => {
-            this.loadSound(name, config.path, config.fallbackFreq);
-        });
+        // Загружаем звуки
+        for (const [name, path] of Object.entries(soundConfigs)) {
+            await this.loadSound(name, path);
+        }
         
         // Загружаем музыку
-        Object.entries(musicConfigs).forEach(([name, path]) => {
-            this.loadMusic(name, path);
-        });
+        for (const [name, path] of Object.entries(musicConfigs)) {
+            await this.loadMusic(name, path);
+        }
     }
     
-    loadSound(name, path, fallbackFreq) {
-        const audio = new Audio();
-        audio.src = path;
-        audio.volume = this.sfxVolume;
-        audio.preload = 'auto';
-        
-        audio.addEventListener('canplaythrough', () => {
-            console.log(`Звук ${name} загружен: ${path}`);
-        });
-        
-        audio.addEventListener('error', (e) => {
-            console.warn(`Ошибка загрузки звука ${name}: ${path}`, e);
-            // Создаем fallback только если файл действительно не найден
-            if (audio.error && audio.error.code === audio.error.MEDIA_ERR_SRC_NOT_SUPPORTED) {
-                this.sounds[name] = {
-                    play: () => this.playFallbackSound(fallbackFreq, 0.1),
-                    isFallback: true
-                };
-            } else {
-                this.sounds[name] = audio;
-            }
-        });
-        
-        audio.addEventListener('load', () => {
-            this.sounds[name] = audio;
-        });
-        
-        // Пробуем загрузить
-        audio.load().catch(e => {
-            console.warn(`Не удалось загрузить звук ${name}:`, e);
-            this.sounds[name] = {
-                play: () => this.playFallbackSound(fallbackFreq, 0.1),
-                isFallback: true
+    async loadSound(name, path) {
+        return new Promise((resolve) => {
+            const audio = new Audio();
+            audio.src = path;
+            audio.volume = this.sfxVolume;
+            audio.preload = 'auto';
+            
+            const handleLoad = () => {
+                console.log(`Звук загружен: ${name}`);
+                this.sounds.set(name, audio);
+                resolve(audio);
             };
+            
+            const handleError = () => {
+                console.warn(`Ошибка загрузки звука: ${name}`, path);
+                // Создаем fallback
+                this.sounds.set(name, {
+                    play: () => this.playFallbackSound(800, 0.1),
+                    isFallback: true
+                });
+                resolve();
+            };
+            
+            audio.addEventListener('canplaythrough', handleLoad, { once: true });
+            audio.addEventListener('error', handleError, { once: true });
+            
+            audio.load().catch(handleError);
         });
-        
-        this.sounds[name] = audio;
     }
     
-    loadMusic(name, path) {
-        const audio = new Audio();
-        audio.src = path;
-        audio.volume = this.musicVolume;
-        audio.loop = true;
-        audio.preload = 'metadata';
-        
-        audio.addEventListener('canplaythrough', () => {
-            console.log(`Музыка ${name} загружена: ${path}`);
+    async loadMusic(name, path) {
+        return new Promise((resolve) => {
+            const audio = new Audio();
+            audio.src = path;
+            audio.volume = this.musicVolume;
+            audio.loop = true;
+            audio.preload = 'metadata';
+            
+            audio.addEventListener('canplaythrough', () => {
+                console.log(`Музыка загружена: ${name}`);
+                this.music.set(name, audio);
+                resolve(audio);
+            }, { once: true });
+            
+            audio.addEventListener('error', () => {
+                console.warn(`Ошибка загрузки музыки: ${name}`);
+                resolve();
+            }, { once: true });
+            
+            audio.load().catch(() => resolve());
         });
-        
-        audio.addEventListener('error', (e) => {
-            console.warn(`Ошибка загрузки музыки ${name}: ${path}`, e);
-        });
-        
-        this.music[name] = audio;
     }
     
     playFallbackSound(frequency, duration) {
@@ -155,44 +158,38 @@ class AudioManager {
             const gainNode = this.audioContext.createGain();
             
             oscillator.connect(gainNode);
-            gainNode.connect(this.audioContext.destination);
+            gainNode.connect(this.globalGainNode);
             
             oscillator.frequency.value = frequency;
-            gainNode.gain.value = this.sfxVolume * 0.3; // Тише чем обычные звуки
+            gainNode.gain.value = this.sfxVolume * 0.3;
             
             oscillator.start();
-            
-            // Плавное затухание
-            gainNode.gain.exponentialRampToValueAtTime(
-                0.001, 
-                this.audioContext.currentTime + duration
-            );
-            
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
             oscillator.stop(this.audioContext.currentTime + duration);
             
         } catch (error) {
-            console.warn("Не удалось создать fallback звук:", error);
+            console.warn("Ошибка fallback звука:", error);
         }
     }
     
     playMusic(trackName) {
-        if (this.isMuted || !this.music[trackName]) return;
+        if (this.isMuted || !this.music.has(trackName)) return;
         
         try {
             // Останавливаем всю музыку
-            Object.values(this.music).forEach(track => {
-                if (track && typeof track.pause === 'function') {
-                    track.pause();
-                    track.currentTime = 0;
-                }
-            });
+            this.stopMusic();
             
-            const track = this.music[trackName];
-            if (track && typeof track.play === 'function') {
+            const track = this.music.get(trackName);
+            if (track) {
                 track.volume = this.musicVolume;
-                track.play().catch(e => {
-                    console.log("Автовоспроизведение музыки заблокировано, требуется взаимодействие");
-                });
+                track.currentTime = 0;
+                
+                const playAttempt = track.play();
+                if (playAttempt !== undefined) {
+                    playAttempt.catch(e => {
+                        console.log("Автовоспроизведение заблокировано:", e);
+                    });
+                }
             }
         } catch (error) {
             console.error("Ошибка воспроизведения музыки:", error);
@@ -200,7 +197,7 @@ class AudioManager {
     }
     
     stopMusic() {
-        Object.values(this.music).forEach(track => {
+        this.music.forEach(track => {
             if (track && typeof track.pause === 'function') {
                 track.pause();
                 track.currentTime = 0;
@@ -209,49 +206,48 @@ class AudioManager {
     }
     
     playSound(soundName) {
-        if (this.isMuted || !this.sounds[soundName]) return;
+        if (this.isMuted || !this.sounds.has(soundName)) return;
         
         try {
-            const sound = this.sounds[soundName];
+            const sound = this.sounds.get(soundName);
             
             if (sound.isFallback) {
-                // Воспроизводим fallback звук
                 sound.play();
                 return;
             }
             
-            if (sound && typeof sound.play === 'function') {
-                // Сбрасываем на начало если звук уже играет
+            if (sound) {
                 sound.currentTime = 0;
                 sound.volume = this.sfxVolume;
                 
-                sound.play().catch(e => {
-                    console.log(`Не удалось воспроизвести звук ${soundName}:`, e);
-                    // Пробуем fallback
-                    this.playFallbackSound(800, 0.1);
-                });
+                const playAttempt = sound.play();
+                if (playAttempt !== undefined) {
+                    playAttempt.catch(e => {
+                        console.log(`Не удалось воспроизвести звук ${soundName}:`, e);
+                        this.playFallbackSound(800, 0.1);
+                    });
+                }
             }
         } catch (error) {
-            console.error("Ошибка воспроизведения звука:", error, soundName);
-            // Всегда пробуем fallback при ошибке
+            console.error("Ошибка воспроизведения звука:", error);
             this.playFallbackSound(800, 0.1);
         }
     }
     
     setMusicVolume(volume) {
-        this.musicVolume = volume;
-        Object.values(this.music).forEach(track => {
+        this.musicVolume = Math.max(0, Math.min(1, volume));
+        this.music.forEach(track => {
             if (track && typeof track.volume !== 'undefined') {
-                track.volume = volume;
+                track.volume = this.musicVolume;
             }
         });
     }
     
     setSfxVolume(volume) {
-        this.sfxVolume = volume;
-        Object.values(this.sounds).forEach(sound => {
+        this.sfxVolume = Math.max(0, Math.min(1, volume));
+        this.sounds.forEach(sound => {
             if (sound && typeof sound.volume !== 'undefined' && !sound.isFallback) {
-                sound.volume = volume;
+                sound.volume = this.sfxVolume;
             }
         });
     }
@@ -260,15 +256,13 @@ class AudioManager {
         this.isMuted = !this.isMuted;
         
         if (this.isMuted) {
-            // Приглушаем всю музыку
-            Object.values(this.music).forEach(track => {
+            this.music.forEach(track => {
                 if (track && typeof track.volume !== 'undefined') {
                     track.volume = 0;
                 }
             });
         } else {
-            // Восстанавливаем громкость
-            Object.values(this.music).forEach(track => {
+            this.music.forEach(track => {
                 if (track && typeof track.volume !== 'undefined') {
                     track.volume = this.musicVolume;
                 }
@@ -277,13 +271,38 @@ class AudioManager {
         
         return this.isMuted;
     }
+    
+    // Новый метод: плавное изменение громкости
+    fadeOutMusic(duration = 1000) {
+        this.music.forEach(track => {
+            if (track && track.volume > 0) {
+                const initialVolume = track.volume;
+                const startTime = Date.now();
+                
+                const fade = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    track.volume = initialVolume * (1 - progress);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(fade);
+                    } else {
+                        track.pause();
+                        track.currentTime = 0;
+                    }
+                };
+                
+                fade();
+            }
+        });
+    }
 }
 
-// Создаем глобальный экземпляр аудио менеджера
+// Создаем глобальный экземпляр
 const audioManager = new AudioManager();
 
-// Экспортируем для использования в других файлах
+// Экспорт для использования в других модулях
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = audioManager;
 }
-
