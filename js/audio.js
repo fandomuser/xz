@@ -87,17 +87,19 @@ class AudioManager {
         };
         
         // Загружаем звуки
-        for (const [name, path] of Object.entries(soundConfigs)) {
-            await this.loadSound(name, path);
-        }
+        const soundPromises = Object.entries(soundConfigs).map(([name, path]) => 
+            this.loadSound(name, path)
+        );
         
         // Загружаем музыку
-        for (const [name, path] of Object.entries(musicConfigs)) {
-            await this.loadMusic(name, path);
-        }
+        const musicPromises = Object.entries(musicConfigs).map(([name, path]) => 
+            this.loadMusic(name, path)
+        );
+        
+        await Promise.all([...soundPromises, ...musicPromises]);
     }
     
-    async loadSound(name, path) {
+    loadSound(name, path) {
         return new Promise((resolve) => {
             const audio = new Audio();
             audio.src = path;
@@ -123,11 +125,11 @@ class AudioManager {
             audio.addEventListener('canplaythrough', handleLoad, { once: true });
             audio.addEventListener('error', handleError, { once: true });
             
-            audio.load().catch(handleError);
+            audio.load();
         });
     }
     
-    async loadMusic(name, path) {
+    loadMusic(name, path) {
         return new Promise((resolve) => {
             const audio = new Audio();
             audio.src = path;
@@ -146,7 +148,7 @@ class AudioManager {
                 resolve();
             }, { once: true });
             
-            audio.load().catch(() => resolve());
+            audio.load();
         });
     }
     
@@ -184,12 +186,9 @@ class AudioManager {
                 track.volume = this.musicVolume;
                 track.currentTime = 0;
                 
-                const playAttempt = track.play();
-                if (playAttempt !== undefined) {
-                    playAttempt.catch(e => {
-                        console.log("Автовоспроизведение заблокировано:", e);
-                    });
-                }
+                track.play().catch(e => {
+                    console.log("Автовоспроизведение заблокировано:", e);
+                });
             }
         } catch (error) {
             console.error("Ошибка воспроизведения музыки:", error);
@@ -220,13 +219,10 @@ class AudioManager {
                 sound.currentTime = 0;
                 sound.volume = this.sfxVolume;
                 
-                const playAttempt = sound.play();
-                if (playAttempt !== undefined) {
-                    playAttempt.catch(e => {
-                        console.log(`Не удалось воспроизвести звук ${soundName}:`, e);
-                        this.playFallbackSound(800, 0.1);
-                    });
-                }
+                sound.play().catch(e => {
+                    console.log(`Не удалось воспроизвести звук ${soundName}:`, e);
+                    this.playFallbackSound(800, 0.1);
+                });
             }
         } catch (error) {
             console.error("Ошибка воспроизведения звука:", error);
@@ -271,38 +267,7 @@ class AudioManager {
         
         return this.isMuted;
     }
-    
-    // Новый метод: плавное изменение громкости
-    fadeOutMusic(duration = 1000) {
-        this.music.forEach(track => {
-            if (track && track.volume > 0) {
-                const initialVolume = track.volume;
-                const startTime = Date.now();
-                
-                const fade = () => {
-                    const elapsed = Date.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    track.volume = initialVolume * (1 - progress);
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(fade);
-                    } else {
-                        track.pause();
-                        track.currentTime = 0;
-                    }
-                };
-                
-                fade();
-            }
-        });
-    }
 }
 
 // Создаем глобальный экземпляр
 const audioManager = new AudioManager();
-
-// Экспорт для использования в других модулях
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = audioManager;
-}
