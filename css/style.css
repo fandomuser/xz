@@ -3,7 +3,6 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Courier New', monospace;
-    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -12,8 +11,6 @@ body {
     overflow: hidden;
     height: 100vh;
     cursor: default;
-    user-select: none;
-    touch-action: manipulation;
 }
 
 /* Загрузочный экран */
@@ -32,39 +29,31 @@ body {
 }
 
 #loading-title {
-    font-size: 2.25rem;
-    margin-bottom: 1.25rem;
+    font-size: 36px;
+    margin-bottom: 20px;
     color: #8a0303;
     text-shadow: 0 0 10px #ff0000;
     animation: pulse 2s infinite;
-    text-align: center;
-    padding: 0 1rem;
 }
 
 #loading-developers {
-    font-size: 1.125rem;
-    margin-bottom: 2.5rem;
+    font-size: 18px;
+    margin-bottom: 40px;
     color: #666;
-    text-align: center;
-    padding: 0 1rem;
 }
 
 #loading-bar-container {
-    width: 90%;
-    max-width: 300px;
-    height: 1.25rem;
+    width: 300px;
+    height: 20px;
     background-color: #222;
     border: 2px solid #444;
-    border-radius: 10px;
-    overflow: hidden;
 }
 
 #loading-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #8a0303, #ff0000);
-    transition: width 0.3s ease;
-    border-radius: 8px;
+    background-color: #8a0303;
+    transition: width 0.5s;
 }
 
 /* Главное меню */
@@ -77,7 +66,7 @@ body {
     background: 
         radial-gradient(circle at 20% 30%, #1a0000 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, #001a00 0%, transparent 50%),
-        url('../images/backgrounds/main-menu.jpg');
+        #000;
     background-size: cover;
     background-position: center;
     display: none;
@@ -85,43 +74,33 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 900;
-    padding: 1rem;
 }
 
 #game-title {
-    font-size: clamp(1.8rem, 8vw, 3rem);
-    margin-bottom: 2.5rem;
+    font-size: 48px;
+    margin-bottom: 40px;
     color: #8a0303;
     text-shadow: 0 0 15px #ff0000;
-    letter-spacing: 2px;
-    text-align: center;
-    line-height: 1.2;
+    letter-spacing: 3px;
 }
 
 .menu-button {
-    background: linear-gradient(145deg, #222, #333);
+    background-color: #222;
     color: #e0e0e0;
     border: 2px solid #444;
-    padding: clamp(0.875rem, 3vw, 1.125rem) clamp(1.25rem, 4vw, 2rem);
-    margin: 0.5rem;
-    font-size: clamp(1rem, 4vw, 1.25rem);
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 20px;
     cursor: pointer;
-    width: min(90%, 280px);
+    width: 250px;
     text-align: center;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    min-height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
 }
 
 .menu-button:hover {
-    background: linear-gradient(145deg, #8a0303, #700202);
+    background-color: #8a0303;
     border-color: #ff0000;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-    transform: translateY(-2px);
+    box-shadow: 0 0 15px #ff0000;
 }
 
 /* Игровой экран */
@@ -158,248 +137,203 @@ body {
     position: absolute;
     bottom: 15%;
     left: 10%;
-    width: min(120px, 25vw);
-    height: min(180px, 35vh);
+    width: 120px;
+    height: 180px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: bottom;
-    transition: all 0.5s ease;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+    transition: all 0.5s;
 }
 
 #dialogue-container {
-    height: min(40vh, 300px);
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    height: 30%;
+    background-color: rgba(0, 0, 0, 0.8);
     border-top: 3px solid #8a0303;
-    padding: 1.25rem;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(5px);
 }
 
 #dialogue-text {
     flex: 1;
-    font-size: clamp(0.9rem, 4vw, 1.125rem);
+    font-size: 18px;
     line-height: 1.5;
-    margin-bottom: 1.25rem;
+    margin-bottom: 20px;
     overflow-y: auto;
-    cursor: pointer;
 }
 
 #speaker-name {
     color: #8a0303;
     font-weight: bold;
-    margin-bottom: 0.625rem;
-    font-size: clamp(1rem, 4vw, 1.25rem);
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    margin-bottom: 10px;
+    font-size: 20px;
 }
 
 #choices-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
+    gap: 10px;
 }
 
 .choice-button {
-    background: linear-gradient(145deg, #222, #2a2a2a);
+    background-color: #222;
     color: #e0e0e0;
     border: 1px solid #444;
-    padding: clamp(0.75rem, 3vw, 1rem) clamp(1rem, 3vw, 1.25rem);
-    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    padding: 10px 15px;
+    font-size: 16px;
     cursor: pointer;
     flex: 1;
-    min-width: min(200px, 45%);
-    transition: all 0.3s ease;
-    border-radius: 6px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    transition: all 0.3s;
 }
 
 .choice-button:hover {
-    background: linear-gradient(145deg, #8a0303, #700202);
-    border-color: #ff0000;
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
-}
-
-/* Кнопки управления */
-#back-button, #sound-toggle {
-    position: absolute;
-    top: 1rem;
-    background: rgba(34, 34, 34, 0.8);
-    color: #e0e0e0;
-    border: 1px solid #444;
-    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(0.75rem, 3vw, 1rem);
-    cursor: pointer;
-    z-index: 100;
-    border-radius: 6px;
-    font-size: clamp(0.8rem, 3vw, 0.9rem);
-    min-height: 44px;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-#back-button {
-    left: 1rem;
-}
-
-#sound-toggle {
-    right: 1rem;
-}
-
-#back-button:hover, #sound-toggle:hover {
-    background: rgba(138, 3, 3, 0.8);
+    background-color: #8a0303;
     border-color: #ff0000;
 }
 
 /* Экран настроек */
-#settings-screen, #credits-screen {
+#settings-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
+    background-color: rgba(0, 0, 0, 0.9);
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 950;
-    padding: 1rem;
-    overflow-y: auto;
 }
 
 .settings-section {
-    margin: 1.25rem 0;
-    width: min(90%, 500px);
+    margin: 20px 0;
+    width: 80%;
+    max-width: 500px;
 }
 
 .settings-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 24px;
+    margin-bottom: 15px;
     color: #8a0303;
-    text-align: center;
 }
 
 .settings-option {
-    margin: 1rem 0;
+    margin: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
 }
 
-.settings-option span {
-    flex: 1;
-    min-width: 150px;
+/* Экран титров */
+#credits-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 950;
+    overflow-y: auto;
+    padding: 50px 0;
 }
 
-.settings-option input[type="range"] {
-    flex: 2;
-    min-width: 200px;
-    height: 6px;
-    background: #222;
-    border-radius: 3px;
-    outline: none;
+.credits-content {
+    text-align: center;
+    max-width: 600px;
 }
 
-/* Типографика для мобильных */
+.credits-title {
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: #8a0303;
+}
+
+.credits-section {
+    margin: 20px 0;
+}
+
+.credits-section h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #8a0303;
+}
+
+.credits-section p {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+/* Анимации */
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+/* Кнопка возврата */
+#back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(34, 34, 34, 0.7);
+    color: #e0e0e0;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#sound-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(34, 34, 34, 0.7);
+    color: #e0e0e0;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* Мобильные стили */
 @media (max-width: 768px) {
-    #dialogue-container {
-        padding: 1rem;
-    }
-    
-    #dialogue-text {
-        font-size: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .choice-button {
-        min-width: 100%;
-        font-size: 0.95rem;
-    }
-    
-    #character {
-        left: 5%;
-        bottom: 10%;
-    }
-}
-
-@media (max-width: 480px) {
     #game-title {
-        font-size: 1.6rem;
-        margin-bottom: 1.5rem;
+        font-size: 32px;
+        text-align: center;
     }
     
     .menu-button {
-        font-size: 1rem;
-        padding: 0.875rem 1rem;
+        width: 90%;
+        font-size: 18px;
+        padding: 12px 20px;
     }
     
-    #dialogue-text {
-        font-size: 0.9rem;
-    }
-}
-
-/* Горизонтальная ориентация */
-@media (max-height: 500px) and (orientation: landscape) {
-    #scene-container {
-        height: 70vh;
+    #loading-title {
+        font-size: 28px;
+        text-align: center;
     }
     
-    #dialogue-container {
-        height: 30vh;
-        padding: 0.75rem;
+    #loading-bar-container {
+        width: 90%;
     }
     
     #character {
         width: 80px;
         height: 120px;
-        bottom: 5%;
     }
-}
-
-/* Анимации */
-@keyframes pulse {
-    0%, 100% { opacity: 0.7; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
-}
-
-@keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-}
-
-.flicker {
-    animation: flicker 3s infinite;
-}
-
-/* Улучшения для тач-устройств */
-.choice-button:active, .menu-button:active {
-    transform: scale(0.96);
-    background: linear-gradient(145deg, #700202, #8a0303);
-}
-
-/* Полоса прокрутки */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: #222;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #8a0303;
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #ff0000;
+    
+    #dialogue-text {
+        font-size: 16px;
+    }
+    
+    .choice-button {
+        min-width: 100%;
+        font-size: 14px;
+    }
 }
