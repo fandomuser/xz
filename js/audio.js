@@ -59,7 +59,7 @@ class AudioManager {
         
         // Базовые звуки с путями
         const soundConfigs = {
-            click: { path: 'audio/sfx/click.wav', fallbackFreq: 800 },
+            click: { path: 'audio/sfx/click.mp3', fallbackFreq: 800 },
             footsteps: { path: 'audio/sfx/footsteps.wav', fallbackFreq: 400 },
             door: { path: 'audio/sfx/door-creak.wav', fallbackFreq: 300 },
             whisper: { path: 'audio/sfx/whisper.wav', fallbackFreq: 600 },
@@ -286,3 +286,4 @@ const audioManager = new AudioManager();
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = audioManager;
 }
+
