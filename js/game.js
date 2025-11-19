@@ -16,6 +16,7 @@ class Game {
         this.isTyping = false;
         this.currentTextInterval = null;
         this.fullText = "";
+        this.audioInitialized = false;
         
         try {
             this.init();
@@ -33,9 +34,20 @@ class Game {
             this.setupEventListeners();
             this.loadGame();
             this.simulateLoading();
+            this.initializeAudio();
         } catch (error) {
             console.error('Error in init:', error);
             this.showErrorScreen();
+        }
+    }
+    
+    initializeAudio() {
+        // Инициализируем аудио после загрузки страницы
+        if (window.audioManager) {
+            this.audioInitialized = true;
+            console.log("Audio manager initialized");
+        } else {
+            console.warn("Audio manager not available");
         }
     }
     
@@ -175,7 +187,11 @@ class Game {
                     e.preventDefault();
                     element.style.transform = '';
                     element.style.backgroundColor = '';
-                    element.click(); // Эмулируем клик
+                    
+                    // Для звуков на мобильных - небольшая задержка
+                    setTimeout(() => {
+                        element.click();
+                    }, 50);
                 });
                 
                 element.addEventListener('touchcancel', (e) => {
@@ -287,9 +303,12 @@ class Game {
                 this.elements.gameScreen.style.display = 'flex';
             }
             
-            if (window.audioManager) {
-                audioManager.playMusic("ambient");
-            }
+            // Задержка для стабильности аудио
+            setTimeout(() => {
+                if (window.audioManager && this.audioInitialized) {
+                    audioManager.playMusic("ambient");
+                }
+            }, 100);
             
             this.showScene("start");
         } catch (error) {
@@ -360,6 +379,22 @@ class Game {
         }
     }
     
+    playSoundSafe(soundName) {
+        if (!window.audioManager || !this.audioInitialized) {
+            console.log("Audio not ready for:", soundName);
+            return;
+        }
+        
+        try {
+            // Небольшая задержка для стабильности
+            setTimeout(() => {
+                audioManager.playSound(soundName);
+            }, 10);
+        } catch (error) {
+            console.warn("Error playing sound:", soundName, error);
+        }
+    }
+    
     showScene(sceneId) {
         console.log('Showing scene:', sceneId);
         
@@ -370,7 +405,6 @@ class Game {
             // Защита от несуществующих сцен
             if (!story[sceneId]) {
                 console.error("Сцена не найдена:", sceneId);
-                // Вместо сброса к началу, показываем заглушку
                 this.showScene("development_note");
                 return;
             }
@@ -392,14 +426,18 @@ class Game {
                 this.elements.dialogueText.style.fontSize = '1rem';
             }
             
-            // Обновляем музыку
-            if (scene.music && window.audioManager) {
-                audioManager.playMusic(scene.music);
+            // Обновляем музыку с задержкой
+            if (scene.music && window.audioManager && this.audioInitialized) {
+                setTimeout(() => {
+                    audioManager.playMusic(scene.music);
+                }, 50);
             }
             
-            // Воспроизводим звук
-            if (scene.sound && window.audioManager) {
-                audioManager.playSound(scene.sound);
+            // Воспроизводим звук сцены с задержкой
+            if (scene.sound && window.audioManager && this.audioInitialized) {
+                setTimeout(() => {
+                    this.playSoundSafe(scene.sound);
+                }, 200);
             }
             
             // Показываем имя говорящего
@@ -419,24 +457,25 @@ class Game {
                     const button = document.createElement('div');
                     button.className = 'choice-button';
                     button.textContent = choice.text;
+                    
+                    // Обработчик клика с улучшенной логикой звуков
                     button.addEventListener('click', () => {
+                        // Всегда сначала воспроизводим звук клика
+                        this.playSoundSafe("click");
+                        
                         // Если текст еще печатается, сначала показываем его полностью
                         if (this.isTyping) {
                             this.skipTyping();
-                            // Даем небольшую задержку перед переходом для лучшего UX
+                            // Задержка перед переходом
                             setTimeout(() => {
-                                if (window.audioManager) {
-                                    audioManager.playSound("click");
-                                }
                                 this.makeChoice(choice.next);
-                            }, 100);
+                            }, 150);
                         } else {
-                            if (window.audioManager) {
-                                audioManager.playSound("click");
-                            }
+                            // Немедленный переход если текст уже показан
                             this.makeChoice(choice.next);
                         }
                     });
+                    
                     this.elements.choicesContainer.appendChild(button);
                 });
             }
@@ -448,9 +487,9 @@ class Game {
             }
             
             this.saveGame();
+            
         } catch (error) {
             console.error('Error showing scene:', error);
-            // Аварийный переход к заглушке
             this.showScene("development_note");
         }
     }
@@ -483,7 +522,7 @@ class Game {
             }, this.textSpeed);
         } catch (error) {
             console.error('Error typing text:', error);
-            element.innerHTML = text; // Показываем текст сразу в случае ошибки
+            element.innerHTML = text;
             this.isTyping = false;
         }
     }
@@ -495,7 +534,6 @@ class Game {
         }
         
         if (this.isTyping && this.elements.dialogueText) {
-            // Показываем весь текст сразу
             this.elements.dialogueText.innerHTML = this.fullText;
             this.isTyping = false;
         }
@@ -537,9 +575,17 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, starting game...');
     try {
         window.game = new Game();
+        
+        // Дополнительная инициализация аудио после полной загрузки
+        setTimeout(() => {
+            if (window.audioManager) {
+                window.game.audioInitialized = true;
+                console.log("Audio fully initialized");
+            }
+        }, 1000);
+        
     } catch (error) {
         console.error('Failed to initialize game:', error);
-        // Аварийный показ меню
         const loadingScreen = document.getElementById('loading-screen');
         const mainMenu = document.getElementById('main-menu');
         if (loadingScreen && mainMenu) {
