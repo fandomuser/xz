@@ -17,14 +17,23 @@ class AudioManager {
             footsteps: new Audio('audio/sfx/footsteps.wav'),
             door: new Audio('audio/sfx/door-creak.wav'),
             whisper: new Audio('audio/sfx/whisper.wav'),
-            heartbeat: new Audio('audio/sfx/heartbeat.wav')
+            heartbeat: new Audio('audio/sfx/heartbeat.wav'),
+            // НОВЫЕ ЗВУКИ
+            ghostWhisper: new Audio('audio/sfx/ghost-whisper.wav'),
+            realityBreak: new Audio('audio/sfx/reality-break.wav'),
+            memoryFlash: new Audio('audio/sfx/memory-flash.wav'),
+            ritualChant: new Audio('audio/sfx/ritual-chant.wav')
         };
         
         // Загрузка музыки
         this.music = {
             main: new Audio('audio/music/main-theme.mp3'),
             ambient: new Audio('audio/music/creepy-ambient.mp3'),
-            tension: new Audio('audio/music/tension.mp3')
+            tension: new Audio('audio/music/tension.mp3'),
+            // НОВАЯ МУЗЫКА
+            memoryTheme: new Audio('audio/music/memory-theme.mp3'),
+            ritualMusic: new Audio('audio/music/ritual-music.mp3'),
+            truthTheme: new Audio('audio/music/truth-theme.mp3')
         };
         
         // Настройка музыки
